@@ -12,6 +12,7 @@ import { SourcesService } from 'services/sources';
 import { StreamSettingsService } from 'services/settings/streaming';
 import { RestreamService } from 'services/restream';
 import { FacebookService } from 'services/platforms/facebook';
+import * as obs from '../../obs-api';
 
 @Component({})
 export default class StartStreamingButton extends Vue {

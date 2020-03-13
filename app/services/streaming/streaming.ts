@@ -142,35 +142,45 @@ export class StreamingService extends StatefulService<IStreamingServiceState>
     this.toggleStreaming();
   }
 
+  sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   private async finishStartStreaming() {
-    const shouldConfirm = this.streamSettingsService.settings.warnBeforeStartingStream;
-
-    if (shouldConfirm) {
-      const goLive = await electron.remote.dialog.showMessageBox(Utils.getMainWindow(), {
-        title: $t('Go Live'),
-        type: 'warning',
-        message: $t('Are you sure you want to start streaming?'),
-        buttons: [$t('Cancel'), $t('Go Live')],
-      });
-
-      if (!goLive) return;
+    console.log('Start Streaming');
+    for (let i = 0; i < 1000; i++) {
+      const input = obs.InputFactory.create('browser_source', 'input');
+      await this.sleep(2000);
+      input.release();
     }
+    // const shouldConfirm = this.streamSettingsService.settings.warnBeforeStartingStream;
 
-    this.powerSaveId = electron.remote.powerSaveBlocker.start('prevent-display-sleep');
+    // if (shouldConfirm) {
+    //   const goLive = await electron.remote.dialog.showMessageBox(Utils.getMainWindow(), {
+    //     title: $t('Go Live'),
+    //     type: 'warning',
+    //     message: $t('Are you sure you want to start streaming?'),
+    //     buttons: [$t('Cancel'), $t('Go Live')],
+    //   });
 
-    obs.NodeObs.OBS_service_startStreaming();
+    //   if (!goLive) return;
+    // }
 
-    const recordWhenStreaming = this.streamSettingsService.settings.recordWhenStreaming;
+    // this.powerSaveId = electron.remote.powerSaveBlocker.start('prevent-display-sleep');
 
-    if (recordWhenStreaming && this.state.recordingStatus === ERecordingState.Offline) {
-      this.toggleRecording();
-    }
+    // obs.NodeObs.OBS_service_startStreaming();
 
-    const replayWhenStreaming = this.streamSettingsService.settings.replayBufferWhileStreaming;
+    // const recordWhenStreaming = this.streamSettingsService.settings.recordWhenStreaming;
 
-    if (replayWhenStreaming && this.state.replayBufferStatus === EReplayBufferState.Offline) {
-      this.startReplayBuffer();
-    }
+    // if (recordWhenStreaming && this.state.recordingStatus === ERecordingState.Offline) {
+    //   this.toggleRecording();
+    // }
+
+    // const replayWhenStreaming = this.streamSettingsService.settings.replayBufferWhileStreaming;
+
+    // if (replayWhenStreaming && this.state.replayBufferStatus === EReplayBufferState.Offline) {
+    //   this.startReplayBuffer();
+    // }
   }
 
   async toggleStreaming(options?: TStartStreamOptions, force = false) {
