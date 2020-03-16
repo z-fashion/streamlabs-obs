@@ -559,8 +559,8 @@ export const WidgetDisplayData = (platform?: string): { [x: number]: IWidgetDisp
     description: $t(
       'Display and animate emotes that are seen in chat, improving chat participation via positive feedback.',
     ),
-    demoVideo: false,
-    demoFilename: 'source-sponsor-banner.png',
+    demoVideo: true,
+    demoFilename: 'emote-wall.mp4',
     supportList: [],
     platforms: new Set(['twitch']),
   },
