@@ -37,6 +37,7 @@ const widgetIconMap = {
   [WidgetType.StarsGoal]: 'fas fa-calendar',
   [WidgetType.SupporterGoal]: 'fas fa-calendar',
   [WidgetType.MediaShare]: 'icon-share',
+  [WidgetType.EmoteWall]: 'fas fa-comments',
 };
 
 const sourceIconMap = {

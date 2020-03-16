@@ -57,6 +57,7 @@ import SponsorBanner from 'components/widgets/SponsorBanner.vue';
 import MediaShare from 'components/widgets/MediaShare';
 import AlertBox from 'components/widgets/AlertBox.vue';
 import SpinWheel from 'components/widgets/SpinWheel.vue';
+import EmoteWall from 'components/widgets/EmoteWall.vue';
 
 import PerformanceMetrics from 'components/PerformanceMetrics.vue';
 import { throttle } from 'lodash-decorators';
@@ -118,6 +119,7 @@ export function getComponents() {
     SpinWheel,
     YoutubeStreamStatus,
     ShareStream,
+    EmoteWall,
   };
 }
 

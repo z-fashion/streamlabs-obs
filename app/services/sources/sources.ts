@@ -496,6 +496,7 @@ export class SourcesService extends StatefulService<ISourcesState> {
       WidgetType.SponsorBanner,
       WidgetType.AlertBox,
       WidgetType.SpinWheel,
+      WidgetType.EmoteWall,
     ];
 
     if (isWidget && this.userService.isLoggedIn) {
