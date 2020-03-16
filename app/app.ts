@@ -23,11 +23,11 @@ import VModal from 'vue-js-modal';
 import VeeValidate from 'vee-validate';
 import ChildWindow from 'components/windows/ChildWindow.vue';
 import OneOffWindow from 'components/windows/OneOffWindow.vue';
-import electronLog from 'electron-log';
 import { UserService, setSentryContext } from 'services/user';
 import { getResource } from 'services';
 import * as obs from '../obs-api';
 import path from 'path';
+import util from 'util';
 import uuid from 'uuid/v4';
 import Blank from 'components/windows/Blank.vue';
 import Main from 'components/windows/Main.vue';
@@ -61,6 +61,40 @@ if (isProduction) {
 }
 
 let usingSentry = false;
+const windowId = Utils.getWindowId();
+
+function wrapLogFn(fn: string) {
+  const old: Function = console[fn];
+  console[fn] = (...args: any[]) => {
+    old.apply(console, args);
+
+    const level = fn === 'log' ? 'info' : fn;
+
+    sendLogMsg(level, ...args);
+  };
+}
+
+function sendLogMsg(level: string, ...args: any[]) {
+  const serialized = args
+    .map(arg => {
+      if (typeof arg === 'string') return arg;
+
+      return util.inspect(arg);
+    })
+    .join(' ');
+
+  ipcRenderer.send('logmsg', { level, sender: windowId, message: serialized });
+}
+
+['log', 'info', 'warn', 'error'].forEach(wrapLogFn);
+
+window.addEventListener('error', e => {
+  sendLogMsg('error', e.error);
+});
+
+window.addEventListener('unhandledrejection', e => {
+  sendLogMsg('error', e.reason);
+});
 
 if (
   (isProduction || process.env.SLOBS_REPORT_TO_SENTRY) &&
@@ -150,6 +184,21 @@ const showDialog = (message: string): void => {
 document.addEventListener('DOMContentLoaded', async () => {
   const store = createStore();
 
+  // setup VueI18n plugin
+  Vue.use(VueI18n);
+
+  const i18n = new VueI18n({
+    locale: 'en-US',
+    fallbackLocale: 'en-US',
+    messages: {},
+    silentTranslationWarn: false,
+    missing: (language: string, key: string) => {
+      if (isProduction) return;
+      console.error(`Missing translation found for ${language} -- "${key}"`);
+    },
+  });
+  I18nService.setVuei18nInstance(i18n);
+
   // The worker window can safely access services immediately
   if (Utils.isWorkerWindow()) {
     const windowsService: WindowsService = WindowsService.instance;
@@ -196,6 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     ipcRenderer.on('closeWindow', () => windowsService.closeMainWindow());
+    I18nService.instance.load();
     AppService.instance.load();
   }
 
@@ -205,22 +255,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       windowsService.closeChildWindow();
     });
   }
-
-  // setup VueI18n plugin
-  Vue.use(VueI18n);
-
-  // This won't be fully initialized until services are ready
-  const i18n = new VueI18n({
-    locale: 'en-US',
-    fallbackLocale: 'en-US',
-    messages: {},
-    // TODO: Make this not silent
-    silentTranslationWarn: true,
-    missing: (language: string, key: string) => {
-      if (isProduction) return;
-      console.error(`Missing translation found for ${language} -- "${key}"`);
-    },
-  });
 
   // create a root Vue component
   const windowId = Utils.getCurrentUrlParams().windowId;
@@ -248,16 +282,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Perform some final initialization now that services are ready
   ipcRenderer.on('initFinished', () => {
-    const i18nService: I18nService = I18nService.instance;
-    const dictionaries = i18nService.getLoadedDictionaries();
-
-    Object.keys(dictionaries).forEach(locale => {
-      i18n.setLocaleMessage(locale, dictionaries[locale]);
-    });
-
-    i18n.locale = i18nService.state.locale;
-    i18n.fallbackLocale = i18nService.getFallbackLocale();
-    I18nService.setVuei18nInstance(i18n);
+    // setup translations for the current window
+    if (!Utils.isWorkerWindow()) {
+      I18nService.uploadTranslationsToVueI18n();
+    }
 
     if (usingSentry) {
       const userService = getResource<UserService>('UserService');
@@ -273,45 +301,4 @@ if (Utils.isDevMode()) {
   window.addEventListener('keyup', ev => {
     if (ev.key === 'F12') electron.ipcRenderer.send('openDevTools');
   });
-}
-
-// ERRORS LOGGING
-
-// catch and log unhandled errors/rejected promises:
-electronLog.catchErrors({ onError: e => electronLog.log(`from ${Utils.getWindowId()}`, e) });
-
-// override console.error
-const consoleError = console.error;
-console.error = function(...args: any[]) {
-  if (Utils.isDevMode()) ipcRenderer.send('showErrorAlert');
-  writeErrorToLog(...args);
-  consoleError.call(console, ...args);
-};
-
-/**
- * Try to serialize error arguments and stack and write them to the log file
- */
-function writeErrorToLog(...errors: (Error | string)[]) {
-  let message = '';
-
-  // format error arguments depending on the type
-  const formattedErrors = errors.map(error => {
-    if (error instanceof Error) {
-      message = error.stack;
-    } else if (typeof error === 'string') {
-      message = error;
-    } else {
-      try {
-        message = JSON.stringify(error);
-      } catch (e) {
-        message = 'UNSERIALIZABLE';
-      }
-    }
-    return message;
-  });
-
-  // send error to the main process via IPC
-  electronLog.error(`Error from ${Utils.getWindowId()} window:
-    ${formattedErrors.join('\n')}
-  `);
 }

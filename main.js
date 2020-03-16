@@ -21,18 +21,12 @@ process.env.SLOBS_VERSION = pjson.version;
 const { app, BrowserWindow, ipcMain, session, crashReporter, dialog, webContents } = require('electron');
 const path = require('path');
 const rimraf = require('rimraf');
-const electronLog = require('electron-log');
 
 const overlay = require('@streamlabs/game-overlay');
 
 // We use a special cache directory for running tests
 if (process.env.SLOBS_CACHE_DIR) {
   app.setPath('appData', process.env.SLOBS_CACHE_DIR);
-  electronLog.transports.file.file = path.join(
-    process.env.SLOBS_CACHE_DIR,
-    'slobs-client',
-    'log.log'
-  );
 }
 
 app.setPath('userData', path.join(app.getPath('appData'), 'slobs-client'));
@@ -72,44 +66,125 @@ if (!gotTheLock) {
   // Main Program
   ////////////////////////////////////////////////////////////////////////////////
 
-  (function setupLogger() {
-    // save logs to the cache directory
-    electronLog.transports.file.file = path.join(app.getPath('userData'), 'log.log');
-    electronLog.transports.file.level = 'info';
-    // Set approximate maximum log size in bytes. When it exceeds,
-    // the archived log will be saved as the log.old.log file
-    electronLog.transports.file.maxSize = 5 * 1024 * 1024;
+  const util = require('util');
+  const logFile = path.join(app.getPath('userData'), 'app.log');
+  const maxLogBytes = 16384;
 
-    // catch and log unhandled errors/rejected promises
-    electronLog.catchErrors();
+  // Truncate the log file if it is too long
+  if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {
+    const content = fs.readFileSync(logFile);
+    fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
+    fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
+  }
 
+  ipcMain.on('logmsg', (e, msg) => {
+    logFromRemote(msg.level, msg.sender, msg.message);
+  });
+
+  function logFromRemote(level, sender, msg) {
+    msg.split('\n').forEach(line => {
+      writeLogLine(`[${new Date().toISOString()}] [${level}] [${sender}] - ${line}`);
+    });
+  }
+
+  const consoleLog = console.log;
+  console.log = (...args) => {
+    if (!process.env.SLOBS_DISABLE_MAIN_LOGGING) {
+      const serialized = args
+        .map(arg => {
+          if (typeof arg === 'string') return arg;
+    
+          return util.inspect(arg);
+        })
+        .join(' ');
+
+      logFromRemote('info', 'electron-main', serialized);
+    }
+  };
+
+  const lineBuffer = [];
+
+  function writeLogLine(line) {
+    // Also print to stdout
+    consoleLog(line);
+
+    lineBuffer.push(`${line}\n`);
+    flushNextLine();
+  }
+
+  let writeInProgress = false;
+
+  function flushNextLine() {
+    if (lineBuffer.length === 0) return;
+    if (writeInProgress) return;
+
+    const nextLine = lineBuffer.shift();
+
+    writeInProgress = true;
+
+    fs.writeFile(logFile, nextLine, { flag: 'a' }, (e) => {
+      writeInProgress = false;
+
+      if (e) {
+        consoleLog('Error writing to log file', e);
+        return;
+      }
+
+      flushNextLine();
+    });
+  }
+
+  const os = require('os');
+  const cpus = os.cpus();
+
+  // Source: https://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable-string/10420404
+  function humanFileSize(bytes, si) {
+    var thresh = si ? 1000 : 1024;
+    if(Math.abs(bytes) < thresh) {
+        return bytes + ' B';
+    }
+    var units = si
+        ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
+        : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+    var u = -1;
+    do {
+        bytes /= thresh;
+        ++u;
+    } while(Math.abs(bytes) >= thresh && u < units.length - 1);
+    return bytes.toFixed(1)+' '+units[u];
+  }
+
+  console.log('=================================');
+  console.log(`Streamlabs OBS`);
+  console.log(`Version: ${process.env.SLOBS_VERSION}`);
+  console.log(`OS: ${os.platform()} ${os.release()}`);
+  console.log(`Arch: ${process.arch}`);
+  console.log(`CPU: ${cpus[0].model}`);
+  console.log(`Cores: ${cpus.length}`);
+  console.log(`Memory: ${humanFileSize(os.totalmem(), false)}`);
+  console.log(`Free: ${humanFileSize(os.freemem(), false)}`);
+  console.log('=================================');
+
+  app.on('ready', () => {
     // network logging is disabled by default
     if (!process.argv.includes('--network-logging')) return;
-    app.on('ready', () => {
 
-      // ignore fs requests
-      const filter = { urls: ['https://*', 'http://*'] };
+    // ignore fs requests
+    const filter = { urls: ['https://*', 'http://*'] };
 
-      session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
-        log('HTTP REQUEST', details.method, details.url);
-        callback(details);
-      });
-
-      session.defaultSession.webRequest.onErrorOccurred(filter, (details) => {
-        log('HTTP REQUEST FAILED', details.method, details.url);
-      });
-
-      session.defaultSession.webRequest.onCompleted(filter, (details) => {
-        log('HTTP REQUEST COMPLETED', details.method, details.url, details.statusCode);
-      });
+    session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
+      console.log('HTTP REQUEST', details.method, details.url);
+      callback(details);
     });
-  })();
 
-  function log(...args) {
-    if (!process.env.SLOBS_DISABLE_MAIN_LOGGING) {
-      electronLog.log(...args);
-    }
-  }
+    session.defaultSession.webRequest.onErrorOccurred(filter, (details) => {
+      console.log('HTTP REQUEST FAILED', details.method, details.url);
+    });
+
+    session.defaultSession.webRequest.onCompleted(filter, (details) => {
+      console.log('HTTP REQUEST COMPLETED', details.method, details.url, details.statusCode);
+    });
+  });
 
   // Windows
   let workerWindow;
@@ -128,6 +203,7 @@ if (!gotTheLock) {
   function openDevTools() {
     childWindow.webContents.openDevTools({ mode: 'undocked' });
     mainWindow.webContents.openDevTools({ mode: 'undocked' });
+    workerWindow.webContents.openDevTools({ mode: 'undocked' });
   }
 
   // TODO: Clean this up
@@ -182,8 +258,6 @@ if (!gotTheLock) {
       webPreferences: { nodeIntegration: true }
     });
 
-    workerWindow.openDevTools({ mode: 'detach' });
-
     // setTimeout(() => {
       workerWindow.loadURL(`${global.indexUrl}?windowId=worker`);
     // }, 10 * 1000);
@@ -215,8 +289,6 @@ if (!gotTheLock) {
       webPreferences: { nodeIntegration: true, webviewTag: true }
     });
 
-    mainWindow.openDevTools({ mode: 'detach' });
-
     // setTimeout(() => {
       mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
     // }, 5 * 1000)
@@ -240,6 +312,16 @@ if (!gotTheLock) {
       }
 
       if (!allowMainWindowClose) e.preventDefault();
+    });
+
+    // prevent worker window to be closed before other windows
+    // we need it to properly handle App.stop() in tests
+    // since it tries to close all windows
+    workerWindow.on('close', e => {
+      if (!shutdownStarted) {
+        e.preventDefault();
+        mainWindow.close();
+      }
     });
 
     ipcMain.on('acknowledgeShutdown', () => {
@@ -312,7 +394,9 @@ if (!gotTheLock) {
     ipcMain.on('AppInitFinished', () => {
       workerInitFinished = true;
 
-      BrowserWindow.getAllWindows().forEach(window => window.send('initFinished'));
+      waitingVuexStores.forEach(winId => {
+        BrowserWindow.fromId(winId).send('initFinished');
+      });
 
       waitingVuexStores.forEach(windowId => {
         workerWindow.webContents.send('vuex-sendState', windowId);
@@ -387,7 +471,7 @@ if (!gotTheLock) {
 
   app.on('ready', () => {
     if (
-      !process.argv.includes('--skip-update') && false &&
+      !process.argv.includes('--skip-update') &&
       ((process.env.NODE_ENV === 'production') || process.env.SLOBS_FORCE_AUTO_UPDATE)) {
       const updateInfo = {
         baseUrl: 'https://slobs-cdn.streamlabs.com',
@@ -419,7 +503,7 @@ if (!gotTheLock) {
 
 
   ipcMain.on('window-focusMain', () => {
-    mainWindow.focus();
+    if (!mainWindow.isDestroyed()) mainWindow.focus();
   });
 
   // The main process acts as a hub for various windows
@@ -434,12 +518,12 @@ if (!gotTheLock) {
     // refreshed.  We only want to register it once.
     if (!registeredStores[windowId]) {
       registeredStores[windowId] = win;
-      log('Registered vuex stores: ', Object.keys(registeredStores));
+      console.log('Registered vuex stores: ', Object.keys(registeredStores));
 
       // Make sure we unregister is when it is closed
       win.on('closed', () => {
         delete registeredStores[windowId];
-        log('Registered vuex stores: ', Object.keys(registeredStores));
+        console.log('Registered vuex stores: ', Object.keys(registeredStores));
       });
     }
 
@@ -448,6 +532,7 @@ if (!gotTheLock) {
       // to the newly registered window
 
       if (workerInitFinished) {
+        win.send('initFinished');
         workerWindow.webContents.send('vuex-sendState', windowId);
       } else {
         waitingVuexStores.push(windowId);
@@ -554,5 +639,21 @@ if (!gotTheLock) {
         contents.invalidate();
       }
     });
+  });
+
+  ipcMain.on('getWindowIds', e => {
+    e.returnValue = {
+      worker: workerWindow.id,
+      main: mainWindow.id,
+      child: childWindow.id,
+    };
+  });
+
+  let lastEventTime = 0;
+  ipcMain.on('measure-time', (e, msg, time) => {
+    const delta = lastEventTime ? time - lastEventTime : 0;
+    lastEventTime = time;
+    if (delta > 2000) console.log('------------------');
+    console.log(msg, delta + 'ms');
   });
 }
