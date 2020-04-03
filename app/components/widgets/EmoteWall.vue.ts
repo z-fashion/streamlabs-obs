@@ -17,8 +17,7 @@ import ValidatedForm from 'components/shared/inputs/ValidatedForm';
 })
 export default class EmoteWall extends WidgetSettings<IEmoteWallData, EmoteWallService> {
   navItems = [
-    { value: 'manage-count', label: $t('Manage Viewer Count') },
-    { value: 'font', label: $t('Font Settings') },
+    { value: 'manage-wall', label: $t('Manage Emote Wall') },
     { value: 'source', label: $t('Source') },
   ];
 }
