@@ -61,6 +61,7 @@ import AlertBox from 'components/widgets/AlertBox.vue';
 import SpinWheel from 'components/widgets/SpinWheel.vue';
 
 import PerformanceMetrics from 'components/PerformanceMetrics.vue';
+import MixerFrame from '../components/editor/elements/MixerFrame';
 
 const { ipcRenderer, remote } = electron;
 const BrowserWindow = remote.BrowserWindow;
@@ -120,6 +121,7 @@ export function getComponents() {
     YoutubeStreamStatus,
     ShareStream,
     WelcomeToPrime,
+    MixerFrame,
   };
 }
 

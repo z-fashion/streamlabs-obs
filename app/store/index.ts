@@ -50,39 +50,59 @@ plugins.push((store: Store<any>) => {
 
   // Only the worker window should ever receive this
   ipcRenderer.on('vuex-sendState', (event: Electron.Event, windowId: number) => {
-    const win = remote.BrowserWindow.fromId(windowId);
+    let needToSendToWebview = false;
+    let win = remote.BrowserWindow.fromId(windowId);
+    if (!win) {
+      needToSendToWebview = true;
+      win = Util.getMainWindow();
+    }
     flushMutations();
-    win.webContents.send('vuex-loadState', JSON.stringify(store.state));
+    win.webContents.send('vuex-loadState', JSON.stringify(store.state), needToSendToWebview);
   });
 
   // Only renderer windows should ever receive this
-  ipcRenderer.on('vuex-loadState', (event: Electron.Event, state: any) => {
-    store.commit('BULK_LOAD_STATE', {
-      state: JSON.parse(state),
-      __vuexSyncIgnore: true,
-    });
+  ipcRenderer.on(
+    'vuex-loadState',
+    (event: Electron.Event, state: any, needToSendToWebview = false) => {
+      if (needToSendToWebview) {
+        (window.document.querySelector('webview') as any).send('vuex-loadState', state);
+        return;
+      }
+      store.commit('BULK_LOAD_STATE', {
+        state: JSON.parse(state),
+        __vuexSyncIgnore: true,
+      });
 
-    // renderer windows can't receive mutations until after the BULK_LOAD_STATE event
-    storeCanReceiveMutations = true;
-  });
+      // renderer windows can't receive mutations until after the BULK_LOAD_STATE event
+      storeCanReceiveMutations = true;
+    },
+  );
 
   // All windows can receive this
-  ipcRenderer.on('vuex-mutation', (event: Electron.Event, mutationString: string) => {
-    if (!storeCanReceiveMutations) return;
+  ipcRenderer.on(
+    'vuex-mutation',
+    (event: Electron.Event, mutationString: string, needToSendToWebview) => {
+      if (!storeCanReceiveMutations) return;
 
-    const mutations = JSON.parse(mutationString);
-    for (const mutation of mutations) {
-      // for worker window commit mutation directly
-      if (isWorkerWindow) {
-        commitMutation(mutation);
+      if (needToSendToWebview) {
+        (window.document.querySelector('webview') as any).send('vuex-mutation', mutationString);
         return;
       }
 
-      // for renderer windows commit mutations via api-client
-      const servicesManager: ServicesManager = ServicesManager.instance;
-      servicesManager.internalApiClient.handleMutation(mutation);
-    }
-  });
+      const mutations = JSON.parse(mutationString);
+      for (const mutation of mutations) {
+        // for worker window commit mutation directly
+        if (isWorkerWindow) {
+          commitMutation(mutation);
+          return;
+        }
+
+        // for renderer windows commit mutations via api-client
+        const servicesManager: ServicesManager = ServicesManager.instance;
+        servicesManager.internalApiClient.handleMutation(mutation);
+      }
+    },
+  );
 
   ipcRenderer.send('vuex-register');
 });

@@ -18,6 +18,7 @@ class BrowserViewProps {
   options?: Electron.BrowserViewConstructorOptions = null;
   setLocale?: boolean = false;
   enableGuestApi?: boolean = false;
+  nodeintegration?: boolean = false;
   onReady?: (view: any) => void = () => {};
 }
 
@@ -52,6 +53,10 @@ export default class BrowserView extends TsxComponent<BrowserViewProps> {
         'bundles',
         'guest-api',
       );
+    }
+
+    if (this.props.nodeintegration) {
+      options.webPreferences.nodeIntegration = true;
     }
 
     this.browserView = new electron.remote.BrowserView(options);
@@ -115,6 +120,7 @@ export default class BrowserView extends TsxComponent<BrowserViewProps> {
   @Watch('theme')
   async loadUrl() {
     try {
+      console.log('load url', this.props.src);
       await this.browserView.webContents.loadURL(this.props.src);
     } catch (e) {
       // ignore some common errors

@@ -19,7 +19,7 @@ process.env.SLOBS_VERSION = pjson.version;
 ////////////////////////////////////////////////////////////////////////////////
 // Modules and other Requires
 ////////////////////////////////////////////////////////////////////////////////
-const { app, BrowserWindow, ipcMain, session, crashReporter, dialog, webContents } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, session, crashReporter, dialog, webContents } = require('electron');
 const path = require('path');
 const rimraf = require('rimraf');
 const overlay = require('@streamlabs/game-overlay');
@@ -203,9 +203,18 @@ if (!gotTheLock) {
   global.indexUrl = 'file://' + __dirname + '/index.html';
 
   function openDevTools() {
-    childWindow.webContents.openDevTools({ mode: 'undocked' });
-    mainWindow.webContents.openDevTools({ mode: 'undocked' });
-    workerWindow.webContents.openDevTools({ mode: 'undocked' });
+    consoleLog('OPEN DEV TOOLS')
+    BrowserWindow.getAllWindows().forEach(win => {
+      win.webContents.openDevTools({ mode: 'undocked' });
+    });
+    BrowserView.getAllViews().forEach(bw => {
+      console.log('try to opend dt for bw', bw);
+      bw.webContents.openDevTools({ mode: 'undocked' });
+    })
+
+    // childWindow.webContents.openDevTools({ mode: 'undocked' });
+    // mainWindow.webContents.openDevTools({ mode: 'undocked' });
+    // workerWindow.webContents.openDevTools({ mode: 'undocked' });
   }
 
   // TODO: Clean this up
@@ -520,7 +529,8 @@ if (!gotTheLock) {
   let registeredStores = {};
 
   ipcMain.on('vuex-register', event => {
-    let win = BrowserWindow.fromWebContents(event.sender);
+    console.log('got event', event);
+    let win = BrowserWindow.fromWebContents(event.sender) || event.sender.webContents;
     let windowId = win.id;
 
     // Register can be received multiple times if the window is
@@ -558,7 +568,12 @@ if (!gotTheLock) {
 
       Object.keys(registeredStores).filter(id => id !== windowId.toString()).forEach(id => {
         const win = registeredStores[id];
-        if (!win.isDestroyed()) win.webContents.send('vuex-mutation', mutation);
+        if (!win.isDestroyed()) {
+          win.webContents.send('vuex-mutation', mutation);
+          if (win === mainWindow.id) {
+            win.webContents.send('vuex-mutation', mutation, true);
+          }
+        }
       });
     }
   });

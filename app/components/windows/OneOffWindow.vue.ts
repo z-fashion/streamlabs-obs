@@ -3,7 +3,7 @@ import { Component } from 'vue-property-decorator';
 import { Inject } from 'services/core/injector';
 import { getComponents, WindowsService } from 'services/windows';
 import { CustomizationService } from 'services/customization';
-import Util from 'services/utils';
+import utils from 'services/utils';
 import TitleBar from '../TitleBar';
 
 @Component({
@@ -25,11 +25,20 @@ export default class OneOffWindow extends Vue {
   }
 
   get options() {
-    return this.windowsService.state[this.windowId];
+    return (
+      this.windowsService.state[this.windowId] || {
+        componentName: utils.getCurrentUrlParams().componentName,
+        size: {
+          width: 200,
+          height: 300,
+        },
+        isFullScreen: utils.getCurrentUrlParams().isFullScreen,
+      }
+    );
   }
 
   get windowId() {
-    return Util.getCurrentUrlParams().windowId;
+    return utils.getCurrentUrlParams().windowId;
   }
 
   get theme() {
@@ -39,6 +48,8 @@ export default class OneOffWindow extends Vue {
   windowResizeTimeout: number;
 
   windowSizeHandler() {
+    if (!this.windowsService.state[this.windowId]) return;
+
     if (!this.windowsService.state[this.windowId].hideStyleBlockers) {
       this.windowsService.actions.updateStyleBlockers(this.windowId, true);
     }
