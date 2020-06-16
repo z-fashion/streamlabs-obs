@@ -47,7 +47,7 @@ export default class ExtraSettings extends Vue {
   }
 
   showCacheDir() {
-    electron.remote.shell.openItem(this.appService.appDataDirectory);
+    electron.remote.shell.openPath(this.appService.appDataDirectory);
   }
 
   deleteCacheDir() {
