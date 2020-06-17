@@ -260,7 +260,7 @@ if (!gotTheLock) {
 
     workerWindow = new BrowserWindow({
       show: false,
-      webPreferences: { nodeIntegration: true }
+      webPreferences: { nodeIntegration: true , enableRemoteModule:true}
     });
 
     // setTimeout(() => {
@@ -291,7 +291,7 @@ if (!gotTheLock) {
       frame: false,
       title: 'Streamlabs OBS',
       backgroundColor: '#17242D',
-      webPreferences: { nodeIntegration: true, webviewTag: true }
+      webPreferences: { nodeIntegration: true, webviewTag: true , enableRemoteModule:true}
     });
 
     // setTimeout(() => {
@@ -353,7 +353,7 @@ if (!gotTheLock) {
       show: false,
       frame: false,
       backgroundColor: '#17242D',
-      webPreferences: { nodeIntegration: true }
+      webPreferences: { nodeIntegration: true, enableRemoteModule:true }
     });
 
     childWindow.removeMenu();
