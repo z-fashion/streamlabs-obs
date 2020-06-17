@@ -197,10 +197,11 @@ export class WindowsService extends StatefulService<IWindowsState> {
   private windows: Dictionary<Electron.BrowserWindow> = {};
 
   init() {
-    const windows = BrowserWindow.getAllWindows();
-    this.windows.worker = windows[0];
-    this.windows.main = windows[1];
-    this.windows.child = windows[2];
+    const windowIds = ipcRenderer.sendSync('getWindowIds');
+
+    this.windows.worker = BrowserWindow.fromId(windowIds.worker);
+    this.windows.main = BrowserWindow.fromId(windowIds.main);
+    this.windows.child = BrowserWindow.fromId(windowIds.child);
 
     this.updateScaleFactor('main');
     this.updateScaleFactor('child');
