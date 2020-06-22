@@ -4119,9 +4119,9 @@ cosmiconfig@^5.2.0:
     js-yaml "^3.13.1"
     parse-json "^4.0.0"
 
-"crash-handler@https://github.com/stream-labs/crash-handler/releases/download/v0.1.2/iojs-v6.0.3-crash-handler.tar.gz":
+"crash-handler@https://github.com/stream-labs/crash-handler/releases/download/v0.0.66-e9/iojs-v9.0.4-crash-handler.tar.gz":
   version "0.0.1"
-  resolved "https://github.com/stream-labs/crash-handler/releases/download/v0.1.2/iojs-v6.0.3-crash-handler.tar.gz#43927805966e861256fc764d1615db559e31b013"
+  resolved "https://github.com/stream-labs/crash-handler/releases/download/v0.0.66-e9/iojs-v9.0.4-crash-handler.tar.gz#92203f31da89c927a49fde18b354aa706143b93b"
 
 crc32-stream@^2.0.0:
   version "2.0.0"
@@ -4797,10 +4797,10 @@ electron-window-state@5.0.3:
     jsonfile "^4.0.0"
     mkdirp "^0.5.1"
 
-electron@9.0.4:
-  version "9.0.4"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-9.0.4.tgz#5aa72c1576c82c19f6e087311ffe1d7b74358d25"
-  integrity sha512-QzkeZNAiNB7KxcdoQKSoaiVT/GQdB4Vt0/ZZOuU8tIKABAsni2I7ztiAbUzxcsnQsqEBSfChuPuDQ5A4VbbzPg==
+electron@8.3.3:
+  version "8.3.3"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-8.3.3.tgz#8ce07dcbafa097d00b94d1dd58a2a3b30fe6f803"
+  integrity sha512-/LGnjnE9BQzkn2VpjflLi7jpQxYIp+maqmiDPy6ww76hkQvt/LJ991ewdHpfLR4or3VqzPIu+AK+ZJrTlDAWyw==
   dependencies:
     "@electron/get" "^1.0.1"
     "@types/node" "^12.0.12"
@@ -5694,9 +5694,9 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.1"
     readable-stream "^2.0.4"
 
-"font-manager@https://github.com/stream-labs/font-manager/releases/download/v1.0.8electron6/iojs-v6.0.3-font-manager.tar.gz":
+"font-manager@https://github.com/stream-labs/font-manager/releases/download/v1.1.2-e9/iojs-v9.0.4-font-manager.tar.gz":
   version "1.0.8"
-  resolved "https://github.com/stream-labs/font-manager/releases/download/v1.0.8electron6/iojs-v6.0.3-font-manager.tar.gz#9d37074abecdc7b9ae66a041c085bd6b652bd4d3"
+  resolved "https://github.com/stream-labs/font-manager/releases/download/v1.1.2-e9/iojs-v9.0.4-font-manager.tar.gz#412f6e6ac87f15b751ddef51ed4a05433e7ae5cc"
 
 for-in@^1.0.2:
   version "1.0.2"
@@ -8385,9 +8385,9 @@ node-fetch@^2.3.0, node-fetch@^2.6.0:
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
   integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
 
-"node-fontinfo@https://github.com/stream-labs/node-fontinfo/releases/download/v0.0.12electron6/iojs-v6.0.3-node-fontinfo.tar.gz":
+"node-fontinfo@https://github.com/stream-labs/node-fontinfo/releases/download/1.0.8-e9/iojs-v9.0.4-node-fontinfo.tar.gz":
   version "0.0.12"
-  resolved "https://github.com/stream-labs/node-fontinfo/releases/download/v0.0.12electron6/iojs-v6.0.3-node-fontinfo.tar.gz#d893af84f75803c68a22ad1dd525b6ecaef8c790"
+  resolved "https://github.com/stream-labs/node-fontinfo/releases/download/1.0.8-e9/iojs-v9.0.4-node-fontinfo.tar.gz#70d396ee8d70c8a846394951b8e56d237f7a2751"
 
 node-libs-browser@^2.0.0:
   version "2.0.0"
@@ -8418,9 +8418,9 @@ node-libs-browser@^2.0.0:
     util "^0.10.3"
     vm-browserify "0.0.4"
 
-"node-libuiohook@https://github.com/stream-labs/node-libuiohook/releases/download/v0.0.14/iojs-v6.0.3-node-libuiohook.tar.gz":
+"node-libuiohook@https://github.com/stream-labs/node-libuiohook/releases/download/v0.0.40-e9/iojs-v9.0.4-node-libuiohook.tar.gz":
   version "0.0.9"
-  resolved "https://github.com/stream-labs/node-libuiohook/releases/download/v0.0.14/iojs-v6.0.3-node-libuiohook.tar.gz#864182a1808ae605e55380bf1118d50ee488fe90"
+  resolved "https://github.com/stream-labs/node-libuiohook/releases/download/v0.0.40-e9/iojs-v9.0.4-node-libuiohook.tar.gz#f03c7766dba58cf5b4272b622945df225bf9b67d"
 
 node-object-hash@^1.2.0:
   version "1.4.2"
@@ -8690,9 +8690,9 @@ object.values@^1.1.0:
     function-bind "^1.1.1"
     has "^1.0.3"
 
-"obs-studio-node@https://obsstudionodes3.streamlabs.com/obs-studio-node-0.6.36-iojs-v6.0.3-release.tar.gz":
+"obs-studio-node@https://obsstudionodes3.streamlabs.com/obs-studio-node-0.6.36-e9-iojs-v9.0.4-release.tar.gz":
   version "0.3.99"
-  resolved "https://obsstudionodes3.streamlabs.com/obs-studio-node-0.6.36-iojs-v6.0.3-release.tar.gz#0d0f57dc1670dc7ce396855f38c9318b2e10392d"
+  resolved "https://obsstudionodes3.streamlabs.com/obs-studio-node-0.6.36-e9-iojs-v9.0.4-release.tar.gz#a9aaf951a48c56002d6ca87cde019f6c572af91d"
 
 observable-to-promise@^0.5.0:
   version "0.5.0"
