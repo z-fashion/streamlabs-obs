@@ -170,8 +170,7 @@ export class AppService extends StatefulService<IAppState> {
     window.setTimeout(async () => {
       this.shutdownStarted.next();
       this.platformAppsService.unloadAllApps();
-      this.windowsService.closeChildWindow();
-      await this.windowsService.closeAllOneOffs();
+      this.windowsService.shutdown();
       this.ipcServerService.stopListening();
       await this.userService.flushUserSession();
       await this.sceneCollectionsService.deinitialize();
