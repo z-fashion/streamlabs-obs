@@ -25,10 +25,11 @@ type TAnalyticsEvent =
   | 'FacebookLogin'
   | 'PlatformLogin'
   | 'SocialShare'
-  | 'Recording'
-  | 'ReplayBuffer'
   | 'Heartbeat'
-  | 'StreamPerformance';
+  | 'StreamPerformance'
+  | 'StreamingStatus'
+  | 'RecordingStatus'
+  | 'ReplayBufferStatus';
 
 interface IAnalyticsEvent {
   product: string;
