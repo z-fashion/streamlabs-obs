@@ -260,7 +260,7 @@ export class TwitchService extends Service implements IPlatformService {
       platformAuthorizedRequest('twitch', {
         url: `https://api.twitch.tv/kraken/channels/${this.twitchId}`,
         method: 'PUT',
-        body: JSON.stringify({ channel: { game, status: title } }),
+        body: JSON.stringify({ channel: { game } }),
       }),
       this.setStreamTags(tags),
     ]);
