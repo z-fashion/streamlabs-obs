@@ -434,7 +434,7 @@ export class SourcesService extends StatefulService<ISourcesState> {
       { description: 'Image Slide Show', value: 'slideshow' },
       { description: 'Text (GDI+)', value: 'text_gdiplus' },
       { description: 'Text (FreeType 2)', value: 'text_ft2_source' },
-      { description: 'Display Capture', value: 'monitor_capture' },
+      // { description: 'Display Capture', value: 'monitor_capture' },
       { description: 'Window Capture', value: 'window_capture' },
       { description: 'Game Capture', value: 'game_capture' },
       { description: 'Video Capture Device', value: 'dshow_input' },
