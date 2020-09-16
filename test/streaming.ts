@@ -69,7 +69,8 @@ test('Streaming to Twitch', async t => {
   t.pass();
 });
 
-test('Streaming to Facebook', async t => {
+// TODO: Flaky
+test.skip('Streaming to Facebook', async t => {
   await logIn(t, 'facebook');
   await goLive(t, {
     title: 'SLOBS Test Stream',
@@ -368,7 +369,7 @@ test('User does not have Facebook pages', async t => {
 });
 
 test.skip('User has linked twitter', async t => {
-  await logIn(t, 'twitch', { hasLinkedTwitter: true });
+  await logIn(t, 'twitch', { hasLinkedTwitter: true, notStreamable: true });
   await prepareToGoLive(t);
   await clickGoLive(t);
 
