@@ -1,4 +1,5 @@
 import { Component } from 'vue-property-decorator';
+import Draggable from 'vuedraggable';
 import { AudioService } from 'services/audio';
 import { Inject } from 'services/core/injector';
 import MixerItem from 'components/MixerItem.vue';
@@ -17,6 +18,11 @@ export default class Mixer extends BaseElement {
 
   advancedSettingsTooltip = $t('Open advanced audio settings');
   mixerTooltip = $t('Monitor audio levels. If the bars are moving you are outputting audio.');
+  audioDisplayOrder: string[] = null;
+
+  mounted() {
+    this.audioDisplayOrder = Object.keys(this.audioSources);
+  }
 
   showAdvancedSettings() {
     this.audioService.showAdvancedSettings();
@@ -32,8 +38,14 @@ export default class Mixer extends BaseElement {
   }
 
   get audioSources() {
-    return this.audioService.views.sourcesForCurrentScene.filter(source => {
-      return !source.mixerHidden;
+    return this.audioService.views.sourcesForCurrentScene;
+  }
+
+  get mixerList() {
+    return this.audioDisplayOrder.map(sourceId => {
+      const audioSource = this.audioSources[sourceId];
+      if (audioSource.mixerHidden) return null;
+      return <MixerItem audioSource={audioSource} key={sourceId} />;
     });
   }
 
@@ -56,9 +68,7 @@ export default class Mixer extends BaseElement {
           </div>
         </div>
         <Scrollable className="studio-controls-selector mixer-panel">
-          {this.audioSources.map(audioSource => (
-            <MixerItem audioSource={audioSource} key={audioSource.sourceId} />
-          ))}
+          <Draggable vModel={this.audioDisplayOrder}>{this.mixerList}</Draggable>
         </Scrollable>
       </div>
     );

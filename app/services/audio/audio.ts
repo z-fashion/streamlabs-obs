@@ -45,23 +45,26 @@ interface IAudioSourceData {
 }
 
 class AudioViews extends ViewHandler<IAudioSourcesState> {
-  get sourcesForCurrentScene(): AudioSource[] {
+  get sourcesForCurrentScene(): Dictionary<AudioSource> {
     return this.getSourcesForScene(this.getServiceViews(ScenesService).activeSceneId);
   }
 
-  getSourcesForScene(sceneId: string): AudioSource[] {
+  getSourcesForScene(sceneId: string): Dictionary<AudioSource> {
     const scene = this.getServiceViews(ScenesService).getScene(sceneId);
-    const sceneSources = scene
-      .getNestedSources({ excludeScenes: true })
-      .filter(sceneItem => sceneItem.audio);
+    const sourceObj = {};
+    const sceneSources = scene.getNestedSources({ excludeScenes: true }).forEach(sceneItem => {
+      if (sceneItem.audio) {
+        const source = this.getSource(sceneItem.sourceId);
+        if (source) sourceObj[source.sourceId] = source;
+      }
+    });
 
     const globalSources = this.getServiceViews(SourcesService)
       .getSources()
-      .filter(source => source.channel !== void 0);
-    return globalSources
-      .concat(sceneSources)
-      .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
-      .filter(item => item);
+      .forEach(source => {
+        if (source.channel !== void 0) sourceObj[source.sourceId] = source;
+      });
+    return sourceObj;
   }
 
   getSource(sourceId: string): AudioSource {
@@ -149,7 +152,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> {
   }
 
   unhideAllSourcesForCurrentScene() {
-    this.views.sourcesForCurrentScene.forEach(source => {
+    Object.values(this.views.sourcesForCurrentScene).forEach(source => {
       source.setHidden(false);
     });
   }
