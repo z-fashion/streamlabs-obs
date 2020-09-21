@@ -52,18 +52,18 @@ class AudioViews extends ViewHandler<IAudioSourcesState> {
   getSourcesForScene(sceneId: string): Dictionary<AudioSource> {
     const scene = this.getServiceViews(ScenesService).getScene(sceneId);
     const sourceObj = {};
-    const sceneSources = scene.getNestedSources({ excludeScenes: true }).forEach(sceneItem => {
+    this.getServiceViews(SourcesService)
+      .getSources()
+      .forEach(source => {
+        if (source.channel !== void 0) sourceObj[source.sourceId] = this.getSource(source.sourceId);
+      });
+    scene.getNestedSources({ excludeScenes: true }).forEach(sceneItem => {
       if (sceneItem.audio) {
         const source = this.getSource(sceneItem.sourceId);
         if (source) sourceObj[source.sourceId] = source;
       }
     });
 
-    const globalSources = this.getServiceViews(SourcesService)
-      .getSources()
-      .forEach(source => {
-        if (source.channel !== void 0) sourceObj[source.sourceId] = source;
-      });
     return sourceObj;
   }
 

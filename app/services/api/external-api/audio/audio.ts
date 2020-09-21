@@ -22,14 +22,14 @@ export class AudioService {
   }
 
   getSourcesForCurrentScene(): AudioSource[] {
-    return this.audioService.views.sourcesForCurrentScene.map(source =>
+    return Object.values(this.audioService.views.sourcesForCurrentScene).map(source =>
       this.getSource(source.sourceId),
     );
   }
 
   getSourcesForScene(sceneId: string): AudioSource[] {
-    return this.audioService.views
-      .getSourcesForScene(sceneId)
-      .map(source => this.getSource(source.sourceId));
+    return Object.values(this.audioService.views.getSourcesForScene(sceneId)).map(source =>
+      this.getSource(source.sourceId),
+    );
   }
 }

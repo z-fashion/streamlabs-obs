@@ -18,7 +18,7 @@ export default class Mixer extends BaseElement {
 
   advancedSettingsTooltip = $t('Open advanced audio settings');
   mixerTooltip = $t('Monitor audio levels. If the bars are moving you are outputting audio.');
-  audioDisplayOrder: string[] = null;
+  audioDisplayOrder: string[] = [];
 
   mounted() {
     this.audioDisplayOrder = Object.keys(this.audioSources);
@@ -44,7 +44,7 @@ export default class Mixer extends BaseElement {
   get mixerList() {
     return this.audioDisplayOrder.map(sourceId => {
       const audioSource = this.audioSources[sourceId];
-      if (audioSource.mixerHidden) return null;
+      if (!audioSource || audioSource.mixerHidden) return null;
       return <MixerItem audioSource={audioSource} key={sourceId} />;
     });
   }
