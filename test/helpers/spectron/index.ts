@@ -194,6 +194,7 @@ export function useSpectron(options: ITestRunnerOptions = {}) {
         deprecationWarnings: false,
       },
       chromeDriverArgs: [`user-data-dir=${path.join(t.context.cacheDir, 'slobs-client')}`],
+      quitTimeout: 30000,
     });
 
     if (options.beforeAppStartCb) await options.beforeAppStartCb(t);
