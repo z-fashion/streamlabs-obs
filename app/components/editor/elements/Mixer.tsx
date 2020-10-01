@@ -1,5 +1,5 @@
 import { Component } from 'vue-property-decorator';
-import Draggable from 'vuedraggable';
+import SlVueTree from 'sl-vue-tree';
 import { AudioService } from 'services/audio';
 import { Inject } from 'services/core/injector';
 import MixerItem from 'components/MixerItem.vue';
@@ -37,6 +37,11 @@ export default class Mixer extends BaseElement {
     menu.popup();
   }
 
+  handleSort(e: any) {
+    console.log('firing');
+    console.log(e);
+  }
+
   get audioSources() {
     return this.audioService.views.sourcesForCurrentScene;
   }
@@ -68,7 +73,9 @@ export default class Mixer extends BaseElement {
           </div>
         </div>
         <Scrollable className="studio-controls-selector mixer-panel">
-          <Draggable vModel={this.audioDisplayOrder}>{this.mixerList}</Draggable>
+          <SlVueTree value={this.audioDisplayOrder} onInput={(e: any) => this.handleSort(e)}>
+            {this.mixerList}
+          </SlVueTree>
         </Scrollable>
       </div>
     );
