@@ -9,6 +9,13 @@ import { EditorCommandsService } from 'services/editor-commands';
 import BaseElement from './BaseElement';
 import Scrollable from 'components/shared/Scrollable';
 
+interface ISLVueTreeNode {
+  title: string;
+  isLeaf: boolean;
+  isSelected: boolean;
+  data: unknown;
+}
+
 @Component({})
 export default class Mixer extends BaseElement {
   @Inject() audioService: AudioService;
@@ -50,8 +57,14 @@ export default class Mixer extends BaseElement {
     return this.audioDisplayOrder.map(sourceId => {
       const audioSource = this.audioSources[sourceId];
       if (!audioSource || audioSource.mixerHidden) return null;
-      return <MixerItem audioSource={audioSource} key={sourceId} />;
+      return { title: sourceId, isLeaf: true, isSelected: false, data: { id: sourceId } };
     });
+  }
+
+  get scopedSlots() {
+    return {
+      title: (id: string) => <MixerItem audioSource={this.audioSources[id]} />,
+    };
   }
 
   get element() {
@@ -73,8 +86,8 @@ export default class Mixer extends BaseElement {
           </div>
         </div>
         <Scrollable className="studio-controls-selector mixer-panel">
-          <SlVueTree value={this.audioDisplayOrder} onInput={(e: any) => this.handleSort(e)}>
-            {this.mixerList}
+          <SlVueTree value={this.mixerList} onInput={(e: any) => this.handleSort(e)}>
+            <template scopedSlots={this.scopedSlots}></template>
           </SlVueTree>
         </Scrollable>
       </div>
