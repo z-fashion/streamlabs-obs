@@ -363,6 +363,13 @@ a,
   flex-grow: 1;
 }
 
+.mixer-panel {
+  /deep/ .sl-vue-tree-selected > .sl-vue-tree-node-item {
+    background-color: var(--section) !important;
+    color: var(--paragraph) !important;
+  }
+}
+
 // Make select boxes look similar to input boxes
 select {
   .radius();

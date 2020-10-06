@@ -44,9 +44,8 @@ export default class Mixer extends BaseElement {
     menu.popup();
   }
 
-  handleSort(e: any) {
-    console.log('firing');
-    console.log(e);
+  handleSort(nodes: ISLVueTreeNode[]) {
+    this.audioDisplayOrder = nodes.map(node => node.title);
   }
 
   get audioSources() {
@@ -63,7 +62,9 @@ export default class Mixer extends BaseElement {
 
   get scopedSlots() {
     return {
-      title: (id: string) => <MixerItem audioSource={this.audioSources[id]} />,
+      title: (props: { node: ISLVueTreeNode }) => (
+        <MixerItem audioSource={this.audioSources[props.node.title]} />
+      ),
     };
   }
 
@@ -86,9 +87,11 @@ export default class Mixer extends BaseElement {
           </div>
         </div>
         <Scrollable className="studio-controls-selector mixer-panel">
-          <SlVueTree value={this.mixerList} onInput={(e: any) => this.handleSort(e)}>
-            <template scopedSlots={this.scopedSlots}></template>
-          </SlVueTree>
+          <SlVueTree
+            value={this.mixerList}
+            onInput={(e: any) => this.handleSort(e)}
+            scopedSlots={this.scopedSlots}
+          />
         </Scrollable>
       </div>
     );
