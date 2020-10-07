@@ -8,6 +8,7 @@ import { Menu } from 'util/menus/Menu';
 import { EditorCommandsService } from 'services/editor-commands';
 import BaseElement from './BaseElement';
 import Scrollable from 'components/shared/Scrollable';
+import { ScenesService } from 'services/scenes';
 
 interface ISLVueTreeNode {
   title: string;
@@ -20,19 +21,22 @@ interface ISLVueTreeNode {
 export default class Mixer extends BaseElement {
   @Inject() audioService: AudioService;
   @Inject() editorCommandsService: EditorCommandsService;
+  @Inject() scenesService: ScenesService;
 
   mins = { x: 150, y: 120 };
 
   advancedSettingsTooltip = $t('Open advanced audio settings');
   mixerTooltip = $t('Monitor audio levels. If the bars are moving you are outputting audio.');
-  audioDisplayOrder: string[] = [];
-
-  mounted() {
-    this.audioDisplayOrder = Object.keys(this.audioSources);
-  }
 
   showAdvancedSettings() {
     this.audioService.showAdvancedSettings();
+  }
+
+  get audioDisplayOrder() {
+    if (this.scenesService.views.activeSceneMixerOrder) {
+      return this.scenesService.views.activeSceneMixerOrder;
+    }
+    return Object.keys(this.audioSources);
   }
 
   handleRightClick() {
@@ -45,7 +49,12 @@ export default class Mixer extends BaseElement {
   }
 
   handleSort(nodes: ISLVueTreeNode[]) {
-    this.audioDisplayOrder = nodes.map(node => node.title);
+    console.log('state', this.scenesService.views.activeSceneMixerOrder);
+    console.log(
+      'nodes',
+      nodes.map(node => node.title),
+    );
+    this.scenesService.actions.setActiveSceneMixerOrder(nodes.map(node => node.title));
   }
 
   get audioSources() {

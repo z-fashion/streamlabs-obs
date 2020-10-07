@@ -20,6 +20,7 @@ export type TSceneNodeModel = ISceneItem | ISceneItemFolder;
 export interface IScene {
   id: string;
   name: string;
+  mixerDisplayOrder?: string[];
   nodes: (ISceneItem | ISceneItemFolder)[];
 }
 
@@ -155,6 +156,10 @@ class ScenesViews extends ViewHandler<IScenesState> {
     return this.state.displayOrder.map(id => this.getScene(id)!);
   }
 
+  get activeSceneMixerOrder() {
+    return this.state.scenes[this.activeSceneId].mixerDisplayOrder;
+  }
+
   getSceneItems(): SceneItem[] {
     const sceneItems: SceneItem[] = [];
     this.scenes.forEach(scene => sceneItems.push(...scene.getItems()));
@@ -225,6 +230,11 @@ export class ScenesService extends StatefulService<IScenesState> {
   @mutation()
   private SET_SCENE_ORDER(order: string[]) {
     this.state.displayOrder = order;
+  }
+
+  @mutation()
+  private SET_SCENE_MIXER_ORDER(id: string, order: string[]) {
+    Vue.set(this.state.scenes[id], 'mixerDisplayOrder', order);
   }
 
   createScene(name: string, options: ISceneCreateOptions = {}) {
@@ -321,6 +331,14 @@ export class ScenesService extends StatefulService<IScenesState> {
 
   setSceneOrder(order: string[]) {
     this.SET_SCENE_ORDER(order);
+  }
+
+  setSceneMixerOrder(id: string, order: string[]) {
+    this.SET_SCENE_MIXER_ORDER(id, order);
+  }
+
+  setActiveSceneMixerOrder(order: string[]) {
+    this.SET_SCENE_MIXER_ORDER(this.views.activeSceneId, order);
   }
 
   // Utility functions / getters

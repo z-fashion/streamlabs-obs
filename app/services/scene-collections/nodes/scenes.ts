@@ -12,6 +12,7 @@ export interface ISceneSchema {
   active: boolean;
   hotkeys?: HotkeysNode;
   filters?: SceneFiltersNode;
+  mixerDisplayOrder?: string[];
 }
 
 export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
@@ -46,6 +47,7 @@ export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
             id: scene.id,
             name: scene.name,
             active: this.scenesService.views.activeSceneId === scene.id,
+            mixerDisplayOrder: this.scenesService.views.activeSceneMixerOrder,
           });
         });
     });
@@ -76,6 +78,10 @@ export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
         return new Promise(resolve => {
           obj.sceneItems.load({ scene }).then(() => {
             if (obj.active) this.scenesService.makeSceneActive(scene.id);
+
+            if (obj.mixerDisplayOrder) {
+              this.scenesService.setSceneMixerOrder(scene.id, obj.mixerDisplayOrder);
+            }
 
             if (obj.hotkeys) {
               obj.hotkeys.load({ sceneId: scene.id }).then(() => resolve());
